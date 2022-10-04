@@ -393,7 +393,7 @@ OI_STATUS OI_CODEC_SBC_DecodeRaw(OI_CODEC_SBC_DECODER_CONTEXT* context,
 OI_STATUS OI_CODEC_SBC_DecodeFrame(OI_CODEC_SBC_DECODER_CONTEXT* context,
                                    const OI_BYTE** frameData,
                                    uint32_t* frameBytes, int16_t* pcmData,
-                                   uint32_t* pcmBytes);
+                                   uint32_t* pcmBytes, uint32_t is_mSBC);
 
 /**
  * Calculate the number of SBC frames but don't decode. CRC's are not checked,

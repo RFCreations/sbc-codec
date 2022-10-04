@@ -243,7 +243,7 @@ OI_STATUS OI_CODEC_SBC_DecoderReset(OI_CODEC_SBC_DECODER_CONTEXT* context,
 OI_STATUS OI_CODEC_SBC_DecodeFrame(OI_CODEC_SBC_DECODER_CONTEXT* context,
                                    const OI_BYTE** frameData,
                                    uint32_t* frameBytes, int16_t* pcmData,
-                                   uint32_t* pcmBytes) {
+                                   uint32_t* pcmBytes, uint32_t is_mSBC) {
   OI_STATUS status;
   OI_UINT framelen;
   uint8_t crc;
@@ -264,6 +264,8 @@ OI_STATUS OI_CODEC_SBC_DecodeFrame(OI_CODEC_SBC_DECODER_CONTEXT* context,
 
   TRACE(("Reading Header"));
   OI_SBC_ReadHeader(&context->common, *frameData);
+  if (is_mSBC == 1)
+    context->common.frameInfo.nrof_blocks=15;
 
   /*
    * Some implementations load the decoder into RAM and use overlays for 4 vs 8
@@ -309,12 +311,15 @@ OI_STATUS OI_CODEC_SBC_DecodeFrame(OI_CODEC_SBC_DECODER_CONTEXT* context,
 
   TRACE(("Calculating checksum"));
 
-  crc = OI_SBC_CalculateChecksum(&context->common.frameInfo, *frameData);
-  if (crc != context->common.frameInfo.crc) {
-    TRACE(("CRC Mismatch:  calc=%02x read=%02x\n", crc,
-           context->common.frameInfo.crc));
-    TRACE(("-OI_CODEC_SBC_DecodeFrame: OI_CODEC_SBC_CHECKSUM_MISMATCH"));
-    return OI_CODEC_SBC_CHECKSUM_MISMATCH;
+  if (is_mSBC != 1)
+  {
+    crc = OI_SBC_CalculateChecksum(&context->common.frameInfo, *frameData);
+    if (crc != context->common.frameInfo.crc) {
+      TRACE(("CRC Mismatch:  calc=%02x read=%02x\n", crc,
+            context->common.frameInfo.crc));
+      TRACE(("-OI_CODEC_SBC_DecodeFrame: OI_CODEC_SBC_CHECKSUM_MISMATCH"));
+      return OI_CODEC_SBC_CHECKSUM_MISMATCH;
+    }
   }
 
   /*
